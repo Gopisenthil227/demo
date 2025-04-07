@@ -1,0 +1,291 @@
+1... Derive a top-down, depth-first,
+
+grammar = {
+    'S': [['NP', 'VP']],
+    'NP': [['Det', 'Nom']],
+    'VP': [['V', 'NP']],
+    'Nom': [['Adj', 'Nom'], ['N']],
+    'Det': ['the'],
+    'Adj': ['little', 'angry', 'frightened'],
+    'N': ['squirrel', 'bear'],
+    'V': ['chased']
+}
+
+words = ['the', 'angry', 'bear', 'chased', 'the', 'frightened', 'little', 'squirrel']
+i = 0
+
+def parse(symbol):
+    global i
+    if symbol in grammar and isinstance(grammar[symbol][0], list):
+        for rule in grammar[symbol]:
+            pos = i
+            nodes = []
+            for sym in rule:
+                node = parse(sym)
+                if not node:
+                    i = pos
+                    break
+                nodes.append(node)
+            else:
+                return [symbol] + nodes
+    elif i < len(words) and words[i] in grammar.get(symbol, []):
+        node = [symbol, words[i]]
+        i += 1
+        return node
+    return None
+
+def show(node, indent=0):
+    if node:
+        print('  ' * indent + node[0])
+        for child in node[1:]:
+            show(child, indent + 1)
+
+show(parse('S'))
+
+2... Create the grammar rules
+
+G = {
+  'S': [['NP', 'VP']],
+  'NP': [['Det', 'Nominal'], ['N']],
+  'VP': [['V', 'NP']],
+  'Det': ['A'],
+  'Nominal': [['N']],
+  'N': ['Restaurant', 'Dosa'],
+  'V': ['Serves']
+}
+W = ['A', 'Restaurant', 'Serves', 'Dosa']
+i = 0
+
+def parse(s):
+  global i
+  if s in G and type(G[s][0]) == list:
+    for rule in G[s]:
+      pos = i
+      r = []
+      for sym in rule:
+        t = parse(sym)
+        if not t:
+          i = pos
+          break
+        r.append(t)
+      else:
+        return [s] + r
+  elif i < len(W) and W[i] in G.get(s, []):
+    i += 1
+    return [s, W[i-1]]
+  return None
+
+def show(t, l=0):
+  if t:
+    print(' '*l + t[0])
+    for x in t[1:]: show(x, l+2)
+
+show(parse('S'))
+
+
+3... Minimum edit distance
+
+str1 = 'Saturday'
+str2 = 'Sunday'
+m = len(str1)
+n = len(str2)
+dp = [[0]* (n+1) for _ in range(m+1)]
+
+for i in range(m+1):
+  for j in range(n+1):
+    if i == 0: dp[i][j] = j
+    elif j == 0: dp[i][j] = i
+    elif str1[i-1] == str2[j-1]:
+      dp[i][j] = dp[i-1][j-1]
+    else:
+      dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+
+print("Minimum edit distance:", dp[m][n])
+
+4... find the most probable next word
+
+corpus = [
+ ['<s>', 'I', 'am', 'Henry', '</s>'],
+ ['<s>', 'I', 'like', 'college', '</s>'],
+ ['<s>', 'Do', 'Henry', 'like', 'college', '</s>'],
+ ['<s>', 'Henry', 'I', 'am', '</s>'],
+ ['<s>', 'Do', 'I', 'like', 'Henry', '</s>'],
+ ['<s>', 'Do', 'I', 'like', 'college', '</s>'],
+ ['<s>', 'I', 'do', 'like', 'Henry', '</s>']
+]
+
+trigrams = {}
+for sent in corpus:
+  for i in range(len(sent) - 2):
+    a, b, c = sent[i], sent[i+1], sent[i+2]
+    if (a,b) not in trigrams: trigrams[(a,b)] = {}
+    if c not in trigrams[(a,b)]: trigrams[(a,b)][c] = 0
+    trigrams[(a,b)][c] += 1
+
+pair = ('<s>', 'Do')
+next_words = trigrams.get(pair, {})
+best = max(next_words, key=next_words.get)
+print("Most probable word after <s> Do I:", best)
+
+5... Stemming and Lemmatization
+
+def stem(word):
+    suffixes = ['ing', 'ly', 'ed', 'ious', 'ies', 'ive', 'es', 's', 'ment']
+    for suffix in suffixes:
+        if word.endswith(suffix):
+            return word[: -len(suffix)]
+    return word
+
+def lemmatize(word):
+    lemma_dict = {
+        'programming': 'program',
+        'loving': 'love',
+        'lovely': 'love',
+        'kind': 'kind'  # already base form
+    }
+    return lemma_dict.get(word.lower(), word)
+
+words = ['Programming', 'Loving', 'Lovely', 'Kind']
+
+print("Word\t\tStem\t\tLemma")
+print("-" * 40)
+for w in words:
+    original = w
+    stemmed = stem(w.lower())
+    lemmatized = lemmatize(w)
+    print(f"{original:<12}{stemmed:<12}{lemmatized}")
+
+
+6... Parts of speech tagging
+
+rules = [
+ ['I','PRON'], ['need','VERB'], ['a','DET'], ['flight','NOUN'], ['from','PREP'], ['Atlanta.','PROPN'],
+ ['Everything','PRON'], ['to','PART'], ['permit','VERB'], ['us.','PRON'],
+ ['would','MODAL'], ['like','VERB'], ['address','VERB'], ['the','DET'],
+ ['public','NOUN'], ['on','PREP'], ['this','DET'], ['issue.','NOUN'],
+ ['We','PRON'], ['your','PRON'], ['shipping','ADJ'], ['address.','VERB']
+]
+
+sents = [
+ "I need a flight from Atlanta.",
+ "Everything to permit us.",
+ "I would like to address the public on this issue.",
+ "We need your shipping address."
+]
+
+def tag(word):
+ for pair in rules:
+  if pair[0]==word:
+   return pair[1]
+ return 'UNK'
+
+i = 1
+for s in sents:
+ print("Sentence", i, ":", s)
+ i += 1
+ for w in s.split():
+  print(w.ljust(12), "→", tag(w))
+ print()
+
+
+or
+
+rules = [
+  ['I','PRP'], ['need','VBP'], ['a','DT'], ['flight','NN'], ['from','IN'], ['Atlanta.','NNP'],
+  ['Everything','NN'], ['to','TO'], ['permit','VB'], ['us.','PRP'],
+  ['would','MD'], ['like','VB'], ['address','VB'], ['the','DT'], ['public','NN'], ['on','IN'], ['this','DT'], ['issue.','NN'],
+  ['We','PRP'], ['your','PRP$'], ['shipping','NN'], ['address.','NN']
+]
+
+sents = [
+  "I need a flight from Atlanta.",
+  "Everything to permit us.",
+  "I would like to address the public on this issue.",
+  "We need your shipping address."
+]
+
+def tag(word):
+    for pair in rules:
+        if pair[0] == word:
+            return pair[1]
+    return 'UNK'
+
+for s in sents:
+    word = ""
+    words = []
+    s += " "
+    for c in s:
+        if c != ' ':
+            word += c
+        else:
+            words += [word]
+            word = ""
+    for w in words:
+        print([w, tag(w)], end=' ')
+    print()
+
+7... Text summarization
+
+text = '''Artificial Intelligence is changing the world. 
+It is used in healthcare to detect diseases. 
+AI is used in education to personalize learning. 
+It helps in self-driving cars. 
+Many industries use AI for automation. 
+In banking, AI detects frauds. 
+AI chatbots improve customer service. 
+Entertainment apps use AI for recommendations. 
+AI is useful in agriculture and weather prediction. 
+Still, AI raises ethical concerns.'''
+
+sentences = text.split('. ')
+freq = {}
+for s in sentences:
+    for w in s.lower().replace('.', '').replace(',', '').split():
+        freq[w] = freq.get(w, 0) + 1
+scores = []
+for s in sentences:
+    score = sum(freq.get(w, 0) for w in s.lower().split())
+    scores.append((score, s))
+top = sorted(scores, reverse=True)[:3]
+for _, s in top:
+    print(s.strip()+'.')
+
+
+8... regular expression
+
+import re
+
+t = '''sunil123@gmail.com support@domain.org ankit.k@xyz.in
+9876543210 9123456789
+Sunil, Sumit, Subhi, Sujan'''
+
+# Extract email IDs
+emails = re.findall(r'\S+@\S+\.\w+', t)
+print("Email IDs:", emails)
+
+# Extract mobile numbers
+mobiles = re.findall(r'\b[6-9]\d{9}\b', t)
+print("Mobile Numbers:", mobiles)
+
+# Names starting with 'Su'
+names = re.findall(r'\bSu\w+', t)
+print("Names matching 'Su_':", names)
+
+# First match using re.search()
+p = re.compile(r'Su\w+')
+print("First phone found (search):", re.search(r'\b[6-9]\d{9}\b', t).group())
+print("Match at start (match):", re.match(r'Contact', 'Contact us at sunil123@gmail.com').group())
+
+# Replace phone numbers with X's
+text = 'Contact us at sunil123@gmail.com or support@domain.org for queries.\nYou can also reach ankit.k@xyz.in. Call 9876543210 or 9123456789 for urgent help.'
+masked = re.sub(r'\b[6-9]\d{9}\b', 'XXXXXXXXXX', text)
+print("Text after replacing numbers:", masked)
+
+# Using re.compile() again
+emails_compiled = re.compile(r'\S+@\S+\.\w+')
+print("Emails using re.compile():", emails_compiled.findall(t))
+
+# Regex pattern examples
+print("ab followed by 0 or more c:", re.findall(r'ab[c]*', 'ab abc abcc abccc'))
+print("a followed by 0 or more bc:", re.findall(r'a(bc)*', 'a abc abcbc abcbcbc'))
+print("ab followed by 0 or 1 c:", re.findall(r'abc?', 'ab abc abcc ab abc'))
