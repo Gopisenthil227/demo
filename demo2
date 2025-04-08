@@ -246,6 +246,45 @@ for _, s in top:
 
 import re
 
+text = """
+Emails: sunil123@gmail.com, shyam.office@college.edu, contact_me@domain.org
+Phones: 9876543210, 9123456789
+"""
+
+names = ["Sunil", "Shyam", "Ankit", "Surjeet", "Sumit", "Subhi", "Surbhi", "Siddharth", "Sujan"]
+abc = "a ab abc abcc abccc abb abcd"
+
+email_pattern = r'\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b'
+phone_pattern = r'\b\d{10}\b'
+su_pattern = r'\bSu\w{3}\b'
+ab_pattern = r'ab(?:c)*'       # ab + 0 or more c's
+a_pattern = r'a(?:bc)*'        # a + 0 or more 'bc'
+an_pattern = r'ab(?:c)?'       # ab + 0 or 1 c
+
+
+print(re.findall(email_pattern,text))
+print(re.findall(phone_pattern,text))
+print(re.findall(su_pattern,str(names)))
+print(re.findall(ab_pattern,abc))
+print(re.findall(a_pattern,abc))
+print(re.findall(an_pattern,abc))
+
+found = re.search(phone_pattern,text)
+print(found.group() if found else "not found")
+
+matched = re.match(r'\nEmails' , text)
+print(matched.group() if matched else "not found")
+
+replaced = re.sub(phone_pattern , "xxxxxxxxxx" , text)
+print(replaced)
+
+email_complied = re.compile(email_pattern)
+print(email_complied.findall(text))
+
+or
+
+import re
+
 t = '''sunil123@gmail.com support@domain.org ankit.k@xyz.in
 9876543210 9123456789
 Sunil, Sumit, Subhi, Sujan'''
