@@ -190,39 +190,30 @@ for s in sents:
 
 or
 
-rules = [
-  ['I','PRP'], ['need','VBP'], ['a','DT'], ['flight','NN'], ['from','IN'], ['Atlanta.','NNP'],
-  ['Everything','NN'], ['to','TO'], ['permit','VB'], ['us.','PRP'],
-  ['would','MD'], ['like','VB'], ['address','VB'], ['the','DT'], ['public','NN'], ['on','IN'], ['this','DT'], ['issue.','NN'],
-  ['We','PRP'], ['your','PRP$'], ['shipping','NN'], ['address.','NN']
+sentences = [
+    "I need a flight from Atlanta.",
+    "Everything to permit us.",
+    "I would like to address the public on this issue.",
+    "We need your shipping address."
 ]
 
-sents = [
-  "I need a flight from Atlanta.",
-  "Everything to permit us.",
-  "I would like to address the public on this issue.",
-  "We need your shipping address."
-]
-
-def tag(word):
-    for pair in rules:
-        if pair[0] == word:
-            return pair[1]
-    return 'UNK'
-
-for s in sents:
-    word = ""
-    words = []
-    s += " "
-    for c in s:
-        if c != ' ':
-            word += c
-        else:
-            words += [word]
-            word = ""
-    for w in words:
-        print([w, tag(w)], end=' ')
-    print()
+for sentence in sentences:
+  words = sentence.strip().split()
+  for word in words:
+    w = word.lower()
+    if w in ['i' ,'us','we','your']:
+      print(f'{w} (PRP) ' , end=" ")
+    elif w in ['need' , 'permit' , 'would', 'like','shipping']:
+      print(f"{w} (VBP) " , end= " ")
+    elif w in ['a','the', 'this']:
+      print(f'{w}  (DT) ', end= " ")
+    elif w in ["to"]:
+      print(f'{w} (TO) ', end= " ")
+    elif w in ['flight' , 'atlanta' , 'everything' ,'address','public','issue']:
+      print(f'{w} (NN) ' , end = " ")
+    elif w in ['from' , 'in' , 'on']:
+      print(f'{w} (IN) ' , end ="")
+print()
 
 7... Text summarization
 
